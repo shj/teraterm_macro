@@ -1,0 +1,13 @@
+setdir cmddir
+
+fileopen fh_cmdfile cmdfile 0
+if fh_cmdfile == -1 then
+    if nomessage_flag == 0 then
+        sprintf 'cmdfile(%s)‚ğŠJ‚­–‚ª‚Å‚«‚Ü‚¹‚ñ' cmdfile
+        messagebox inputstr 'ƒGƒ‰['
+  endif
+    setexitcode EXIT_ERR_CMDOPEN
+    end
+endif
+
+setdir ttmldir

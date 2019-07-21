@@ -1,0 +1,23 @@
+tmp = ''
+if logname_with_datetime == 1 then
+    gettime timestr "%Y%m%d-%H%M%S"
+    sprintf2 tmp '%s_%s%s' logfile timestr logsuffix
+else
+    sprintf2 tmp '%s%s' logfile logsuffix
+endif
+
+foldercreate logdir
+changedir logdir
+logopen tmp binary_flag append_flag plain_text_flag timestamp_flag hide_dialog_flag include_screen_buffer_flag
+
+if result == 1 then
+    if nomessage_flag == 0 then
+        sprintf 'logfile(%s)‚ğŠJ‚­–‚ª‚Å‚«‚Ü‚¹‚ñ' logfile
+        messagebox inputstr 'ƒGƒ‰['
+    endif
+    setexitcode EXIT_ERR_LOGOPEN
+    end
+endif
+
+changedir ttmldir
+logautoclosemode logautoclosemode_flag

@@ -1,0 +1,14 @@
+f5mku -K
+tmsh show sys failover
+tmsh show sys ha-group detail
+tmsh show cm  failover-status
+tmsh show sys cpu all
+tmsh show sys memory
+tmsh show sys software
+tmsh show sys version
+tmsh show net vlan all
+tmsh show net interface all
+tmsh show net self all
+ifconfig
+df -h
+exit

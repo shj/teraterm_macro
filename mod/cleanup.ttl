@@ -1,0 +1,9 @@
+;
+; マクロ最終処理を行う
+;
+; 必要なパラメータ: なし
+;
+
+if fh_cmdfile != -1 then
+    fileclose fh_cmdfile
+endif

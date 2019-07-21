@@ -1,0 +1,40 @@
+target = target_hostname
+statusbox target '処理中'
+
+; Cisco用プロンプト
+sprintf2 waitprompt_cisco '^%s(\([a-z]+(-.+)?\)?)?[>#]$' target
+
+; HP用プロンプト
+sprintf2 waitprompt_hp '[\[<].*[>\]]'
+
+; Juniper NetScreen用プロンプト
+sprintf2 waitprompt_ns '^%s->\s$' target
+
+; FortiGate用プロンプト
+sprintf2 waitprompt_forti '^%s\s(\(.+\)\s)?#\s' target
+
+; BIG-IP用プロンプト
+sprintf2 waitprompt_bigip '^\[[a-zA-Z0-9]*@%s:[a-zA-Z]*:[a-zA-Z]*\]\s[a-zA-Z]*#' target
+
+;setsync loop_sync_flag
+setsync 0
+enablekeyb enablekeyb_flag
+
+while 1
+    filereadln fh_cmdfile cmdbuf
+    if result then
+        break
+    endif
+
+      sendln cmdbuf
+    pause 1
+    sendln
+    timeout = 30
+    waitregex waitprompt_hp waitprompt_forti waitprompt_bigip
+    if result == 0 then
+        messagebox 'タイムアウトしました' 'エラー'
+    endif
+    mpause nblank_mpause
+endwhile
+
+setsync 0

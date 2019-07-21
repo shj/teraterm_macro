@@ -1,0 +1,97 @@
+;
+; 踏み台サーバ使用版
+; このマクロは踏み台サーバにログインしている状態で呼び出される事を想定しています
+;
+; BIG-IP ログ取得マクロ
+;
+
+getdir ttmldir
+setdir ttmldir
+include 'conf\default.ttl'
+include 'conf\shared.ttl'
+
+; CSVファイルから接続先情報を読み込む
+csv_file = 'conf\bigip.csv'
+
+fileopen fh_csv_file csv_file 0
+if fh_csv_file == -1 then
+    messagebox 'csvファイルを開けません' 'エラー'
+    end
+endif
+
+inputbox '指定文字列' 'befor/after/etc..' 'before'
+mystr = inputstr
+
+while 1
+    filereadln fh_csv_file csvbuf
+    if result then
+        break
+    endif
+
+    ; コメントアウトは除外
+    strmatch csvbuf '^#'
+    if result != 0 then
+        continue
+    endif
+
+    strsplit csvbuf separator 9
+    call csvtrim
+
+    target_ip = groupmatchstr1
+    target_hostname = groupmatchstr2
+    cmdfile = groupmatchstr3
+    target_loginuser = groupmatchstr4
+
+    ; ログインパスワード取得
+    ispassword  passwdfile target_loginuser
+    if result = 0 then
+        messagebox 'パスワードが未設定です' 'エラー'
+        end
+    endif
+    getpassword passwdfile target_loginuser login_password
+
+    ; SSHログイン
+    login_username = 'root'
+    sprintf2 tmp 'ssh %s -l %s' target_ip login_username
+    sendln tmp
+    pause 1
+    waitregex 'Password:' target_hostname
+    if result == 1 then
+        sendln login_password
+        wait target_hostname
+    endif
+
+    ; ログを開いているなら閉じる
+    logclose
+
+    ; ログを開く
+    sprintf2 logfile '%s_%s' target_hostname mystr
+    include 'mod\open_logfile.ttl'
+
+    ; コマンドファイルを開く
+    include 'mod\open_cmdfile.ttl'
+
+    ; コマンド実行
+    include 'mod\do_loop_cmd.ttl'
+
+    ; 後始末
+    logclose
+    include 'mod\cleanup.ttl'
+endwhile
+
+end
+
+; 文字列前後の「"」「'」を削除する
+; 文字列途中の「"」「'」は削除されない
+:csvtrim
+    s = "'"
+    w = '"'
+    for i 1 9
+        sprintf 'strtrim groupmatchstr%d %s' i  '"'"'
+        execcmnd inputstr
+        sprintf 'strtrim groupmatchstr%d %s' i  "'"'"
+        execcmnd inputstr
+    next
+
+    return
+end

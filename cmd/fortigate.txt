@@ -1,0 +1,5 @@
+get system status
+get system interface physical
+get system ha
+get system performance status
+quit

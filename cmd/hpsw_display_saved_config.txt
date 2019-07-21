@@ -1,0 +1,3 @@
+display saved-configuration
+quit
+quit

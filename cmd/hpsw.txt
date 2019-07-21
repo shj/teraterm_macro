@@ -1,0 +1,29 @@
+display clock
+display version
+display device manuinfo
+display irf
+display environment
+display cpu-usage
+display ntp-service sessions
+display vlan
+display interface brief
+display interface Vlan-interface  brief
+display ip interface brief
+display port trunk
+display link-aggregation summary
+display link-aggregation verbose
+display interface
+display stp
+display stp brief
+display ip routing-table
+display ip routing-table verbose
+display ospf brief
+display ospf peer
+display bgp group
+display bgp network
+display bgp peer
+display vrrp
+display vrrp verbose
+display logbuffer
+quit
+quit

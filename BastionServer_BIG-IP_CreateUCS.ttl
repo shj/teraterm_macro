@@ -1,0 +1,138 @@
+;
+; 踏み台サーバ使用版
+; このマクロは踏み台サーバにログインしている状態で呼び出される事を想定しています
+;
+; BIG-IP UCS取得マクロ
+;
+
+getdir ttmldir
+setdir ttmldir
+include 'conf\default.ttl'
+include 'conf\shared.ttl'
+
+; CSVファイルから接続先情報を読み込む
+csv_file = 'conf\bigip.csv'
+
+fileopen fh_csv_file csv_file 0
+if fh_csv_file == -1 then
+    messagebox 'csvファイルを開けません' 'エラー'
+    end
+endif
+
+inputbox '指定文字列' 'befor/after/etc..' 'before'
+mystr = inputstr
+
+gettime timestr "%Y%m%d_%H%M%S"
+
+while 1
+    filereadln fh_csv_file csvbuf
+    if result then
+        break
+    endif
+
+    ; コメントアウトは除外
+    strmatch csvbuf '^#'
+    if result != 0 then
+        continue
+    endif
+
+    strsplit csvbuf separator 9
+    call csvtrim
+
+    target_ip = groupmatchstr1
+    target_hostname = groupmatchstr2
+    cmdfile = groupmatchstr3
+    target_loginuser = groupmatchstr4
+    sprintf2 waitprompt_bigip '^\[[a-zA-Z0-9]*@%s:[a-zA-Z]*:[a-zA-Z]*\]\s[a-zA-Z]*#' target_hostname
+
+    ; ログインパスワード取得
+    ispassword  passwdfile target_loginuser
+    if result = 0 then
+        messagebox 'パスワードが未設定です' 'エラー'
+        end
+    endif
+    getpassword passwdfile target_loginuser login_password
+
+    ; UCS作成
+    sprintf2 ucs_no_privatekey '%s_%s_no-private-key_%s' target_hostname mystr timestr 
+    sprintf2 ucs_privatekey    '%s_%s_private-key_%s'    target_hostname mystr timestr 
+    login_username = 'root'
+    sprintf2 query_ucs_no_privatekey 'ssh root@%s tmsh save sys ucs %s no-private-key' target_ip ucs_no_privatekey
+    sprintf2 query_ucs_privatekey    'ssh root@%s tmsh save sys ucs %s'                target_ip ucs_privatekey
+
+    sendln query_ucs_no_privatekey
+:sendquery1
+    waitregex '[pP]assword:' 'is saved.'
+    if result == 1 then
+        sendln login_password
+        goto sendquery1
+    endif
+    pause 1
+
+    sendln query_ucs_privatekey
+:sendquery2
+    waitregex '[pP]assword:' 'is saved.'
+    if result == 1 then
+        sendln login_password
+        goto sendquery2
+    endif
+    pause 1
+
+    ; scpで踏み台サーバへ持ってくる
+    sprintf2 full_ucs_no_privatekey '/var/local/ucs/%s.ucs' ucs_no_privatekey
+    sprintf2 full_ucs_privatekey    '/var/local/ucs/%s.ucs' ucs_privatekey
+    sprintf2 scp1 'scp root@%s:%s /tmp/' target_ip full_ucs_no_privatekey
+    sprintf2 scp2 'scp root@%s:%s /tmp/' target_ip full_ucs_privatekey
+    xtimeout = timeout
+
+    sendln scp1
+:getscp1
+    waitregex '[pP]assword:' '100%'
+    if result == 1 then
+        sendln login_password
+        goto getscp1
+    endif
+    pause 1
+
+    sendln scp2
+:getscp2
+    waitregex '[pP]assword:' '100%'
+    if result == 1 then
+        sendln login_password
+        goto getscp2
+    endif
+    pause 1
+
+    ; 端末へダウンロードする
+    ; 踏み台サーバへ多段ログインしていると失敗するので注意
+    getenv 'HOMEPATH' homepath
+    sprintf2 dldir '%s\Downloads' homepath
+    sprintf2 dlfile1 '/tmp/%s.ucs' ucs_no_privatekey
+    sprintf2 dlfile2 '/tmp/%s.ucs' ucs_privatekey
+    sprintf2 dlname1 '%s\%s.ucs'   dldir ucs_no_privatekey
+    sprintf2 dlname2 '%s\%s.ucs'   dldir ucs_privatekey
+
+    scprecv dlfile1 dlname1
+    scprecv dlfile2 dlname2
+
+    ; 後始末
+    logclose
+    include 'mod\cleanup.ttl'
+endwhile
+
+end
+
+; 文字列前後の「"」「'」を削除する
+; 文字列途中の「"」「'」は削除されない
+:csvtrim
+    s = "'"
+    w = '"'
+    for i 1 9
+        sprintf 'strtrim groupmatchstr%d %s' i  '"'"'
+        execcmnd inputstr
+        sprintf 'strtrim groupmatchstr%d %s' i  "'"'"
+        execcmnd inputstr
+    next
+
+    return
+end
