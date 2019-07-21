@@ -17,3 +17,8 @@ logautoclosemode_flag = 1
 
 ; ログファイル名に日付を付加する（日付を付加する場合は 1、しない場合は 0 ）
 logname_with_datetime = 1
+
+; CSVファイルのセパレータ
+separator = ","
+
+loop_sync_flag = 1

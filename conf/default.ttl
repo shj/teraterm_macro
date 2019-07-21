@@ -2,18 +2,15 @@
 ; すべてのマクロで参照される初期設定マクロ
 ; マクロファイルの最初にincludeしてください
 ;
-; 作成日: 2013/1/15
-; 作成者: shj@netwiz.jp
-
 
 ;;;;;;;;;;;;;;;; TeraTermバージョンチェック ;;;;;;;;;;;;;;;;
 reqver = '4.80'
 :ck_terterm_version
 getver version '4.80'
 if result < 0 then
-  sprintf 'TeraTerm Version %s 以上で動作します。TeraTermのバージョンアップを実施してください' reqver
-  messagebox inputstr 'バージョンエラー'
-  end
+    sprintf 'TeraTerm Version %s 以上で動作します。TeraTermのバージョンアップを実施してください' reqver
+    messagebox inputstr 'バージョンエラー'
+    end
 endif
 
 
@@ -25,12 +22,12 @@ ssh_auth_format[SSH_AUTH_PASSWORD]  = '%s:%d /ssh /2 /auth=password /user=%s /pa
 ssh_auth_format[SSH_AUTH_CHALLENGE] = '%s:%d /ssh /2 /auth=challenge /user=%s /passwd=%s'
 ssh_auth_type = SSH_AUTH_PASSWORD
 ;エラーコード
-EXIT_SUCCESS = 0        ;正常終了
-EXIT_ERR_PARAM = 1      ;パラメータエラー
-EXIT_BADPASSWD = 2      ;パスワードエラー
-EXIT_ERR_CMDOPEN = 3    ;コマンドファイルオープンエラー
-EXIT_ERR_LOGOPEN =  4   ;ログファイルオープンエラー
-EXIT_ERR_CONNECT = 5    ;connectエラー
+EXIT_SUCCESS = 0			;正常終了
+EXIT_ERR_PARAM = 1			;パラメータエラー
+EXIT_BADPASSWD = 2  		;パスワードエラー
+EXIT_ERR_CMDOPEN = 3		;コマンドファイルオープンエラー
+EXIT_ERR_LOGOPEN =  4		;ログファイルオープンエラー
+EXIT_ERR_CONNECT = 5		;connectエラー
 
 
 ;;;;;;;;;;;;;;;; ログイン設定 ;;;;;;;;;;;;;;;;
@@ -45,8 +42,8 @@ ssh_port = 22
 ;;;;;;;;;;;;;;;; ログディレクトリ ;;;;;;;;;;;;;;;;
 ifdefined ttmldir
 if result != 3 then
-  messagebox 'ttmldirを設定してください' '設定エラー'
-  end
+    messagebox 'ttmldirを設定してください' '設定エラー'
+    end
 endif
 makepath tmpdir ttmldir 'log'
 logdir = tmpdir
